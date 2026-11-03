@@ -1,6 +1,6 @@
 const mockGetSession = jest.fn();
 const mockInsertOne = jest.fn();
-const mockChatSend = jest.fn();
+const mockCallGemini = jest.fn();
 
 jest.mock('@/lib/auth', () => ({
   getSession: (...args: any[]) => mockGetSession(...args),
@@ -17,19 +17,15 @@ jest.mock('@/lib/mongodb', () => ({
   }),
 }));
 
-jest.mock('@openrouter/sdk', () => ({
-  OpenRouter: jest.fn().mockImplementation(() => ({
-    chat: { send: (...args: any[]) => mockChatSend(...args) },
-  })),
-}));
+jest.mock('@/lib/gemini', () => {
+  const actual = jest.requireActual('@/lib/gemini');
+  return {
+    ...actual,
+    callGeminiCascade: (...args: any[]) => mockCallGemini(...args),
+  };
+});
 
 import { POST } from '@/app/api/generate/route';
-
-function makeStream(content: string) {
-  return (async function* () {
-    yield { choices: [{ delta: { content } }] };
-  })();
-}
 
 const validBody = {
   age: '25',
@@ -52,7 +48,11 @@ const mockPlan = {
       day: 'Monday',
       focus: 'Chest',
       exercises: [
-        { name: 'Bench Press', sets: 3, reps: '8-10', rpe: 7, notes: 'Control descent', videoQuery: 'bench press form' }
+        { name: 'Bench Press', sets: 3, reps: '8-10', rpe: 7, notes: 'Control descent', videoQuery: 'bench press form' },
+        { name: 'Incline Press', sets: 3, reps: '8-10', rpe: 7, notes: 'Upper chest', videoQuery: 'incline press form' },
+        { name: 'Dumbbell Flyes', sets: 3, reps: '10-12', rpe: 8, notes: 'Stretch chest', videoQuery: 'flyes form' },
+        { name: 'Dips', sets: 3, reps: '10-12', rpe: 8, notes: 'Chest emphasis', videoQuery: 'dips form' },
+        { name: 'Pushups', sets: 3, reps: '15-20', rpe: 7, notes: 'Burnout finisher', videoQuery: 'pushups form' }
       ]
     }
   ],
@@ -74,26 +74,13 @@ describe('POST /api/generate', () => {
     mockGetSession.mockResolvedValue(null);
 
     const res = await POST(makeRequest(validBody));
-    const data = await res.json();
-
     expect(res.status).toBe(401);
-    expect(mockChatSend).not.toHaveBeenCalled();
-  });
-
-  it('returns 500 when OPENROUTER_API_KEY missing', async () => {
-    const original = process.env.OPENROUTER_API_KEY;
-    delete process.env.OPENROUTER_API_KEY;
-    mockGetSession.mockResolvedValue({ user: { id: '123' } });
-
-    const res = await POST(makeRequest(validBody));
-    expect(res.status).toBe(500);
-
-    process.env.OPENROUTER_API_KEY = original;
+    expect(mockCallGemini).not.toHaveBeenCalled();
   });
 
   it('returns plan data on successful generation', async () => {
     mockGetSession.mockResolvedValue({ user: { id: '123' } });
-    mockChatSend.mockImplementation(() => Promise.resolve(makeStream(JSON.stringify(mockPlan))));
+    mockCallGemini.mockResolvedValue({ text: JSON.stringify(mockPlan), model: 'gemini-3.8-flash' });
     mockInsertOne.mockResolvedValue({ insertedId: 'routine-id' });
 
     const res = await POST(makeRequest(validBody));
@@ -105,7 +92,7 @@ describe('POST /api/generate', () => {
 
   it('saves plan to DB with userId', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'user-123' } });
-    mockChatSend.mockImplementation(() => Promise.resolve(makeStream(JSON.stringify(mockPlan))));
+    mockCallGemini.mockResolvedValue({ text: JSON.stringify(mockPlan), model: 'gemini-3.8-flash' });
     mockInsertOne.mockResolvedValue({ insertedId: 'id' });
 
     await POST(makeRequest(validBody));
@@ -115,11 +102,15 @@ describe('POST /api/generate', () => {
     );
   });
 
-  it('handles malformed AI JSON response gracefully', async () => {
+  it('handles AI failure gracefully with personalized fallback', async () => {
     mockGetSession.mockResolvedValue({ user: { id: '123' } });
-    mockChatSend.mockImplementation(() => Promise.resolve(makeStream('not json at all')));
+    mockCallGemini.mockRejectedValue(new Error('AI Service Unavailable'));
 
     const res = await POST(makeRequest(validBody));
-    expect(res.status).toBe(500);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.planTitle).toContain('Build Muscle');
+    expect(data.weeklyStructure.length).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,5 @@
 // Integration smoke test — run with `npm run smoke:ai` before every git push.
-// Hits Groq directly with the real API key; exits 1 on any failure.
+// Tests Gemini 3.8 Flash (and fallback cascade) directly with the real API key.
 
 const fs = require("fs");
 const path = require("path");
@@ -20,19 +20,20 @@ if (fs.existsSync(envFile)) {
   }
 }
 
-const MODEL = "llama-3.3-70b-versatile";
-const API_KEY = process.env.GROQ_API_KEY;
+const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 if (!API_KEY) {
-  console.error("ERROR: Real GROQ_API_KEY required — set it in .env.local");
+  console.error("ERROR: Real GEMINI_API_KEY required — set it in .env.local");
   process.exit(1);
 }
 
+const MODELS = ["gemini-3.8-flash", "gemini-3-flash-preview", "gemini-2.5-flash"];
+
 async function run() {
-  console.log(`Smoke test — model: ${MODEL}`);
+  console.log(`Smoke test — Primary Target: gemini-3.8-flash (with multi-tier fallback cascade)`);
   console.log(`  Key starts with: ${API_KEY.substring(0, 10)}...`);
 
-  const PROMPT = `You are a fitness coach. Return ONLY valid JSON, no markdown fences.
+  const PROMPT = `You are an expert fitness coach. Return ONLY valid JSON, no markdown fences.
 Create a minimal workout plan:
 {
   "planTitle": "string",
@@ -45,36 +46,53 @@ Create a minimal workout plan:
   "nutrition": { "calories": "string", "protein": "string", "carbs": "string", "fats": "string", "advice": "string" }
 }`;
 
-  console.log("  Calling Groq...");
-  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: "user", content: PROMPT }],
-      max_tokens: 800,
-      stream: false,
-      response_format: { type: "json_object" }
-    }),
-  });
+  let successModel = null;
+  let rawContent = "";
 
-  const body = await res.json();
+  for (const model of MODELS) {
+    const t0 = Date.now();
+    console.log(`  Calling ${model}...`);
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: PROMPT }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.7
+          }
+        }),
+        signal: AbortSignal.timeout(model === "gemini-3.8-flash" ? 12000 : 25000)
+      });
 
-  if (!res.ok) {
-    console.error(`  FAILED: HTTP ${res.status}`);
-    console.error("  Body:", JSON.stringify(body, null, 2));
+      const body = await res.json();
+      if (!res.ok) {
+        console.warn(`  [${model}] HTTP ${res.status}: ${body.error?.message || "Unavailable"}`);
+        continue;
+      }
+
+      const text = body.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      if (text) {
+        successModel = model;
+        rawContent = text;
+        console.log(`  [${model}] Responded in ${(Date.now() - t0) / 1000}s`);
+        break;
+      }
+    } catch (e) {
+      console.warn(`  [${model}] Failed: ${e.message}`);
+      continue;
+    }
+  }
+
+  if (!successModel) {
+    console.error("  FAILED: All Gemini models failed to respond.");
     process.exit(1);
   }
 
-  const content = body.choices?.[0]?.message?.content ?? "";
-  console.log(`  Raw response (${content.length} chars):\n${content.slice(0, 300)}...`);
-
   let plan;
   try {
-    plan = JSON.parse(content);
+    plan = JSON.parse(rawContent);
   } catch (e) {
     console.error("  FAILED: JSON parse error —", e.message);
     process.exit(1);
@@ -95,11 +113,10 @@ Create a minimal workout plan:
 
   console.log(`  planTitle: "${plan.planTitle}"`);
   console.log(`  Days: ${plan.weeklyStructure.length}`);
-  console.log("  PASSED: Model is live and schema-valid");
+  console.log(`  PASSED: AI engine is live via ${successModel} and schema-valid`);
 }
 
 run().catch((e) => {
   console.error("  FAILED:", e.message);
   process.exit(1);
 });
-

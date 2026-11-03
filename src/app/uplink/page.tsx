@@ -155,7 +155,7 @@ export default function UplinkPage() {
       case 0:
         return (
           <div className="space-y-16 max-w-4xl w-full text-center">
-            <h2 className="text-5xl md:text-7xl font-serif italic mb-8 text-[var(--fg-page)]">Your Stats.</h2>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif italic mb-6 sm:mb-8 text-[var(--fg-page)]">Your Stats.</h2>
             <div className="grid md:grid-cols-3 gap-12">
               {["age", "weight", "height"].map((field) => (
                 <div key={field} className="space-y-4 group">
@@ -166,7 +166,7 @@ export default function UplinkPage() {
                     autoFocus={field === "age"}
                     value={(formData as any)[field]}
                     onChange={(e) => updateData(field, e.target.value)}
-                    className="w-full py-6 text-6xl font-serif italic text-center border-b border-[var(--border-input)] bg-transparent focus:outline-none focus:border-gold-leaf transition-all duration-500 placeholder:text-[var(--fg-submuted)] text-[var(--fg-page)]"
+                    className="w-full py-4 sm:py-6 text-4xl sm:text-5xl md:text-6xl font-serif italic text-center border-b border-[var(--border-input)] bg-transparent focus:outline-none focus:border-gold-leaf transition-all duration-500 placeholder:text-[var(--fg-submuted)] text-[var(--fg-page)]"
                   />
                 </div>
               ))}
@@ -177,7 +177,7 @@ export default function UplinkPage() {
       case 1:
         return (
           <div className="space-y-16 max-w-5xl w-full text-center relative">
-            <h2 className="text-5xl md:text-7xl font-serif italic mb-8 text-[var(--fg-page)]">Body Type.</h2>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif italic mb-6 sm:mb-8 text-[var(--fg-page)]">Body Type.</h2>
             
             <div className="max-w-xl mx-auto mb-12">
               <label className="group relative flex flex-col items-center justify-center p-12 rounded-[3rem] border border-[var(--border-input)] bg-[var(--bg-input)] hover:bg-[var(--fg-page)]/[0.04] hover:border-gold-leaf/30 transition-all duration-700 cursor-pointer overflow-hidden aspect-video">
@@ -240,7 +240,7 @@ export default function UplinkPage() {
       case 2:
         return (
           <div className="space-y-16 max-w-6xl w-full text-center">
-            <h2 className="text-5xl md:text-7xl font-serif italic mb-8 text-[var(--fg-page)]">What's Your Goal?</h2>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif italic mb-6 sm:mb-8 text-[var(--fg-page)]">What's Your Goal?</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { id: "Hypertrophy", label: "Build Muscle", sub: "Get bigger and stronger" },
@@ -294,7 +294,7 @@ export default function UplinkPage() {
       case 3:
         return (
           <div className="space-y-16 max-w-4xl w-full text-center">
-            <h2 className="text-5xl md:text-7xl font-serif italic mb-8 text-[var(--fg-page)]">Where Do You Train?</h2>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif italic mb-6 sm:mb-8 text-[var(--fg-page)]">Where Do You Train?</h2>
             <div className="grid md:grid-cols-2 gap-8">
               {[
                 { id: "Commercial Gym", label: "Full Gym", sub: "All equipment available" },
@@ -319,7 +319,7 @@ export default function UplinkPage() {
       case 4:
         return (
           <div className="space-y-16 max-w-2xl w-full mx-auto text-center">
-            <h2 className="text-5xl md:text-7xl font-serif italic mb-8 text-[var(--fg-page)]">Eating Schedule.</h2>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif italic mb-6 sm:mb-8 text-[var(--fg-page)]">Eating Schedule.</h2>
             <div className="p-12 rounded-[3rem] bg-[var(--fg-page)]/[0.02] border border-[var(--border-input)] flex items-center justify-between gap-12">
               <div className="text-left">
                 <div className="font-serif text-3xl italic text-[var(--fg-page)] mb-2">Intermittent Fasting</div>
@@ -391,11 +391,11 @@ export default function UplinkPage() {
         <button
           onClick={nextStep}
           disabled={isContinueDisabled()}
-          className="btn-magnetic group disabled:opacity-30 disabled:pointer-events-none px-8 py-4 rounded-full border border-[var(--border-input)] relative overflow-hidden bg-[var(--fg-page)]"
+          className="btn-magnetic group disabled:opacity-30 disabled:pointer-events-none px-6 sm:px-10 py-4 sm:py-5 rounded-full border border-white/20 relative overflow-hidden bg-white text-black shadow-xl hover:shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all duration-500"
         >
-          <span className="relative z-10 text-[10px] font-bold uppercase tracking-widest flex items-center gap-4 text-[var(--bg-page)] group-hover:text-[var(--bg-page)] transition-colors">
+          <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-4 text-black group-hover:text-black transition-colors">
             {currentStep === steps.length - 1 ? "Get My Plan" : "Continue"}
-            <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={16} className="group-hover:translate-x-1.5 transition-transform text-black stroke-[2.5]" />
           </span>
           <div className="absolute inset-0 bg-gold-leaf scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
         </button>

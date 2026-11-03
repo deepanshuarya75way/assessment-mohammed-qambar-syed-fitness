@@ -29,7 +29,7 @@ export const Preloader = () => {
                 initial={{ y: 100 }}
                 animate={{ y: 0 }}
                 transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                className="font-serif text-6xl md:text-8xl italic text-[var(--fg-page)] tracking-tighter"
+                className="font-serif text-6xl md:text-8xl italic text-[var(--fg-page)] tracking-tighter logo-svora font-bold"
               >
                 SVORA
               </motion.h1>

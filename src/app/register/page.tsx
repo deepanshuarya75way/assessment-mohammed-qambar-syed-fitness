@@ -46,7 +46,7 @@ export default function RegisterPage() {
       >
         <div className="text-center space-y-4">
           <Link href="/" className="inline-block">
-            <span className="font-display text-4xl italic tracking-tighter" style={{ color: "var(--fg-page)" }}>SVORA</span>
+            <span className="font-display text-4xl italic tracking-tighter logo-svora font-bold" style={{ color: "var(--fg-page)" }}>SVORA</span>
           </Link>
           <h2 className="text-[10px] font-mono uppercase tracking-[0.5em] text-gold-leaf">Create Your Account</h2>
         </div>
@@ -100,7 +100,7 @@ export default function RegisterPage() {
 
           <button
             type="submit" disabled={loading}
-            className="w-full py-5 rounded-full bg-white text-void font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-gold-leaf transition-all duration-700 shadow-2xl flex items-center justify-center gap-4 group"
+            className="w-full py-5 rounded-full bg-white text-black font-black hover:text-black uppercase tracking-[0.4em] text-[10px] hover:bg-gold-leaf transition-all duration-700 shadow-2xl flex items-center justify-center gap-4 group"
           >
             {loading
               ? <Activity size={14} className="animate-spin" />

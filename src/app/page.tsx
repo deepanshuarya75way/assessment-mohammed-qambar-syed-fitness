@@ -1,10 +1,12 @@
 "use client";
 
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, Play, Globe, Activity, Heart, Shield, Asterisk, Plus, Minus, Command, Zap } from "lucide-react";
+import { ArrowUpRight, Play, Globe, Activity, Heart, Shield, Asterisk, Plus, Minus, Command } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { DecryptedText } from "@/components/DecryptedText";
+import { Magnetic } from "@/components/Magnetic";
+import { Navbar } from "@/components/Navbar";
 
 // --- ANIMATION CONFIG ---
 const easeUltra = [0.85, 0, 0.15, 1] as any;
@@ -54,50 +56,24 @@ export default function EnhancedLanding() {
       <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] pointer-events-none z-10 mix-blend-overlay" />
 
       {/* --- NAVIGATION --- */}
-      <nav className="fixed top-0 left-0 w-full z-50 px-8 py-8 md:px-14 flex justify-between items-center mix-blend-difference pointer-events-none">
-        <Link href="/" className="group flex flex-col pointer-events-auto">
-          <span className="font-serif text-4xl italic tracking-tighter text-white hover:text-gold-leaf transition-colors duration-500">SVORA</span>
-          <div className="h-[1px] w-0 bg-gold-leaf group-hover:w-full transition-all duration-700" />
-        </Link>
-        
-        <div className="hidden lg:flex gap-16 pointer-events-auto items-center">
-          {["Philosophy", "Method"].map((item) => (
-            <Link key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-mono uppercase tracking-[0.4em] text-white/60 hover:text-gold-leaf transition-colors duration-500 relative group overflow-hidden">
-              <span className="inline-block transition-transform duration-500 group-hover:-translate-y-full">{item}</span>
-              <span className="absolute top-0 left-0 inline-block transition-transform duration-500 translate-y-full group-hover:translate-y-0 text-gold-leaf">{item}</span>
-            </Link>
-          ))}
-          <Link href="/uplink" className="btn-kinetic bg-white text-black hover:text-white hover:bg-void transition-colors">
-             Initialize
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* --- HERO: THE BLUEPRINT --- */}
-      <section className="relative h-screen flex flex-col justify-center px-8 md:px-20 lg:px-40 overflow-hidden">
+      <section className="relative min-h-[100dvh] flex flex-col justify-center px-6 sm:px-12 md:px-20 lg:px-40 pt-32 pb-20 overflow-hidden">
         <motion.div 
           style={{ y: heroY, rotateX, opacity }} 
           className="relative z-20 perspective-[2000px]"
         >
           <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-12">
-            
-            {/* HUD Header */}
-            <motion.div variants={fadeUp} className="flex items-center gap-6 mb-8 border-l-2 border-gold-leaf pl-6 py-2">
-               <Zap size={16} className="text-gold-leaf animate-pulse" />
-               <div className="flex flex-col">
-                 <span className="text-[10px] font-mono uppercase tracking-[0.6em] text-[var(--fg-page)]/80">AI Personal Training</span>
-                 <span className="text-[9px] font-mono uppercase tracking-widest text-gold-leaf/60">Powered by AI // v.2.6</span>
-               </div>
-            </motion.div>
 
             {/* Main Headline */}
-            <motion.h1 className="text-[13vw] font-serif leading-[0.8] tracking-tighter text-reveal-mask relative mix-blend-difference">
+            <motion.h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[12vw] font-serif leading-[0.9] tracking-tighter text-reveal-mask relative">
               <span className="block text-[var(--fg-page)]">Elevate</span>
               <span className="block italic text-transparent bg-clip-text bg-gradient-to-r from-gold-leaf via-[var(--fg-page)] to-gold-leaf pr-10 ml-[0.5em]">Reality.</span>
             </motion.h1>
 
             {/* Sub-content & CTA */}
-            <div className="grid lg:grid-cols-12 gap-24 items-end mt-12">
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-24 items-end mt-8 lg:mt-12">
               <motion.div variants={fadeUp} className="lg:col-span-5 space-y-12">
                 <div className="relative">
                    <p className="text-xl md:text-2xl font-light leading-relaxed text-[var(--fg-muted)] font-serif italic border-l border-[var(--border-card)] pl-6">
@@ -117,11 +93,13 @@ export default function EnhancedLanding() {
                       </div>
                    </motion.div>
                 </div>
-                <div className="flex gap-8 items-center">
-                   <Link href="/uplink" className="btn-kinetic px-12 py-6 bg-[var(--fg-page)] text-[var(--bg-page)] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-[var(--bg-page)]/90 hover:shadow-[0_0_50px_rgba(212,175,55,0.2)] transition-all duration-700">
-                     Build My Plan
-                   </Link>
-                   <button className="flex items-center gap-4 group px-6 py-3 rounded-full hover:bg-[var(--fg-page)]/5 transition-colors">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-stretch sm:items-center w-full sm:w-auto">
+                   <Magnetic>
+                     <Link href="/uplink" className="btn-kinetic w-full sm:w-auto px-10 sm:px-12 py-5 sm:py-6 bg-white text-black font-bold uppercase tracking-[0.4em] text-[10px] text-center hover:bg-gold-leaf hover:text-black hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500">
+                       Build My Plan
+                     </Link>
+                   </Magnetic>
+                   <button className="flex items-center justify-center sm:justify-start gap-4 group px-6 py-3 rounded-full hover:bg-[var(--fg-page)]/5 transition-colors">
                       <div className="w-10 h-10 rounded-full border border-[var(--border-card)] flex items-center justify-center group-hover:border-gold-leaf transition-colors duration-500 relative overflow-hidden">
                          <div className="absolute inset-0 bg-gold-leaf opacity-0 group-hover:opacity-10 transition-opacity" />
                          <Play size={12} fill="currentColor" className="ml-0.5 text-[var(--fg-muted)] group-hover:text-gold-leaf" />
@@ -178,7 +156,7 @@ export default function EnhancedLanding() {
       </section>
 
       {/* --- FEATURES: THE BENTO GRID --- */}
-      <section id="method" className="py-48 px-8 md:px-20 relative z-20 bg-[var(--bg-page)] border-t border-[var(--border-card)]">
+      <section id="method" className="py-20 md:py-48 px-6 sm:px-10 md:px-20 relative z-20 bg-[var(--bg-page)] border-t border-[var(--border-card)]">
         <SectionTitle title="How It Works." sub="The process" />
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -258,7 +236,7 @@ export default function EnhancedLanding() {
                           whileInView={{ height: `${h}%` }}
                           viewport={{ once: true }}
                           transition={{ duration: 1, delay: i * 0.1, ease: easeUltra }}
-                          className="w-full bg-[var(--fg-submuted)] hover:bg-gold-leaf transition-colors duration-300 rounded-t-sm"
+                          className="w-full bg-gradient-to-t from-gold-leaf/40 via-gold-leaf/80 to-white hover:from-gold-leaf hover:to-white shadow-[0_0_12px_rgba(212,175,55,0.35)] rounded-t-sm transition-all"
                         />
                       ))}
                     </div>
@@ -269,17 +247,17 @@ export default function EnhancedLanding() {
       </section>
 
       {/* --- EXERCISE VISUALS: SOMATIC PROFILES --- */}
-      <section className="py-24 space-y-48 relative z-20">
+      <section id="philosophy" className="py-20 md:py-24 space-y-24 md:space-y-48 relative z-20">
         
         {/* Female Profile: ARCHITECTURAL FLOW */}
-        <div className="grid lg:grid-cols-2 gap-24 items-center px-8 md:px-20 lg:px-40">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center px-6 sm:px-10 md:px-20 lg:px-40">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-            className="relative aspect-[4/5] bg-[var(--bg-page)] border border-[var(--border-card)] overflow-hidden group"
+            className="somatic-image-card relative aspect-[4/5] bg-black/95 border border-[var(--border-card)] overflow-hidden group shadow-2xl"
           >
             {/* Image Layer */}
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-40 group-hover:scale-105 transition-transform duration-[3s] ease-out" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-page)] via-[var(--bg-page)]/20 to-transparent opacity-90" />
+            <div className="somatic-image-layer absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518310383802-640c2de311b2?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-60 group-hover:scale-105 transition-transform duration-[3s] ease-out" />
+            <div className="somatic-gradient-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
             
             {/* Biometric Scanner Line */}
             <motion.div 
@@ -297,7 +275,7 @@ export default function EnhancedLanding() {
             <div className="absolute top-10 left-10 z-40 space-y-4">
                <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-emerald-glow animate-pulse" />
-                  <span className="text-[9px] font-mono uppercase tracking-[0.5em] text-[var(--fg-muted)]">Neural Link: ACTIVE</span>
+                  <span className="text-[9px] font-mono uppercase tracking-[0.5em] text-white/90 font-bold drop-shadow-md">Neural Link: ACTIVE</span>
                </div>
                <div className="w-48 h-[1px] bg-[var(--border-card)] relative overflow-hidden">
                   <motion.div 
@@ -333,7 +311,7 @@ export default function EnhancedLanding() {
                <span className="w-12 h-[1px] bg-gold-leaf/40" />
                <span className="text-[10px] font-mono uppercase tracking-[0.6em] text-gold-leaf/80">Training Profile // 01</span>
             </div>
-            <h2 className="text-7xl font-serif italic text-[var(--fg-page)] leading-[0.9] tracking-tighter">
+            <h2 className="text-5xl sm:text-6xl md:text-7xl font-serif italic text-[var(--fg-page)] leading-[0.95] tracking-tighter">
                <DecryptedText text="Kinetic" /> <br /> 
                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-leaf to-[var(--fg-page)]/40">In Motion.</span>
             </h2>
@@ -357,21 +335,21 @@ export default function EnhancedLanding() {
         </div>
 
         {/* Male Profile */}
-        <div className="grid lg:grid-cols-2 gap-20 items-center px-8 md:px-20 lg:px-40">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center px-6 sm:px-10 md:px-20 lg:px-40">
           <motion.div 
             initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-            className="lg:order-2 relative aspect-[4/5] bg-[var(--bg-page)] border border-[var(--border-card)] overflow-hidden group"
+            className="somatic-image-card lg:order-2 relative aspect-[4/5] bg-black/95 border border-[var(--border-card)] overflow-hidden group shadow-2xl"
           >
             {/* Image Placeholder with Cyber-Zen Styling */}
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-60 group-hover:scale-105 transition-transform duration-1000" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-page)] via-transparent to-transparent opacity-80" />
+            <div className="somatic-image-layer absolute inset-0 bg-[url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-75 group-hover:scale-105 transition-transform duration-1000" />
+            <div className="somatic-gradient-overlay absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
             <div className="absolute inset-0 border-[20px] border-[var(--bg-page)]/40 backdrop-blur-[2px] m-8 pointer-events-none" />
             
             {/* Amber Gold Rim Lighting Simulation */}
             <div className="absolute inset-y-0 left-0 w-1 bg-gold-leaf/40 shadow-[0_0_30px_rgba(245,158,11,0.5)]" />
             
             {/* Technical HUD Overlays */}
-            <div className="absolute bottom-12 right-12 text-right space-y-2 font-mono text-[9px] uppercase tracking-widest text-[var(--fg-muted)]">
+            <div className="absolute bottom-12 right-12 text-right space-y-2 font-mono text-[9px] uppercase tracking-widest text-white/90 font-bold drop-shadow-md">
               <div>Force Output: Optimal</div>
               <div className="text-gold-leaf">Metabolic Load: High</div>
             </div>
@@ -407,7 +385,7 @@ export default function EnhancedLanding() {
       <footer className="py-24 px-8 md:px-20 border-t border-[var(--border-card)] bg-[var(--bg-page)] relative z-30">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-start gap-16 md:items-center">
           <div className="space-y-6">
-             <span className="font-serif text-4xl italic tracking-tighter text-[var(--fg-page)]">SVORA</span>
+             <span className="font-serif text-4xl italic tracking-tighter text-[var(--fg-page)] logo-svora font-bold">SVORA</span>
              <p className="text-[9px] font-mono text-[var(--fg-muted)] uppercase tracking-[0.4em] leading-loose">
                 Personalized Fitness. <br />
                 Est. 2026.

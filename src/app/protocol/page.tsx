@@ -613,7 +613,7 @@ const PostureCorrector = ({ exercise, onComplete, onClose }: { exercise: any, on
         </div>
       </div>
       <div className="mt-12 flex gap-8">
-         <button onClick={onClose} className="px-16 py-6 rounded-full bg-[var(--fg-page)] text-[var(--bg-page)] font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-gold-leaf hover:text-void transition-all border border-transparent hover:border-gold-leaf/20">End Session</button>
+         <button onClick={onClose} className="px-16 py-6 rounded-full bg-white text-black font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-gold-leaf hover:text-black transition-all border border-transparent hover:border-gold-leaf/20 shadow-xl">End Session</button>
       </div>
     </motion.div>
   );
@@ -706,7 +706,7 @@ export default function ProtocolPage() {
       <nav className="fixed top-0 w-full z-40 bg-[var(--bg-page)]/80 backdrop-blur-md border-b border-[var(--border-card)] px-6 md:px-14 py-4 flex justify-between items-center">
         <div className="flex items-center gap-12">
           <Link href="/" className="group flex flex-col pointer-events-auto">
-            <span className="font-serif text-3xl italic tracking-tighter text-[var(--fg-page)]">SVORA</span>
+            <span className="font-serif text-3xl italic tracking-tighter text-[var(--fg-page)] logo-svora font-bold">SVORA</span>
           </Link>
           <div className="hidden md:flex gap-8">
             <button 
@@ -849,7 +849,7 @@ export default function ProtocolPage() {
               ) : (
                 <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-8 text-center">
                    <h2 className="text-5xl font-serif italic text-[var(--fg-submuted)]">No Plan Yet.</h2>
-                   <Link href="/uplink" className="btn-kinetic bg-[var(--fg-page)] text-[var(--bg-page)] hover:text-gold-leaf px-16 py-6">
+                   <Link href="/uplink" className="btn-kinetic bg-white text-black font-bold hover:bg-gold-leaf hover:text-black px-16 py-6 shadow-xl transition-all">
                       Build Your Plan
                    </Link>
                 </div>

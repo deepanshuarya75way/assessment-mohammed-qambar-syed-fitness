@@ -53,9 +53,38 @@ body {
   color: var(--fg-page);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  cursor: none;
   overflow-x: hidden;
   transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+@media (min-width: 769px) and (pointer: fine) {
+  body {
+    cursor: none;
+  }
+}
+
+/* ── Mobile View: Complete Cursor Elimination ────────────────────────── */
+@media (max-width: 768px), (pointer: coarse), (hover: none) {
+  body,
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  .btn-kinetic,
+  .btn-magnetic,
+  .theme-toggle-btn {
+    cursor: auto !important;
+  }
+
+  .custom-cursor-element,
+  [data-custom-cursor] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
 }
 
 /* ── Light-mode overrides for common Tailwind color utilities ────────────── */
@@ -73,7 +102,7 @@ body {
 :root.light h1,
 :root.light h2,
 :root.light h3 {
-  color: var(--fg-page);
+  color: #0A0A0A !important;
 }
 
 /* Muted/ghost text */
@@ -94,6 +123,91 @@ body {
 
 /* Explicit white text on dark buttons — preserve */
 :root.light .text-void { color: #000 !important; }
+
+/* ── Light Mode Navigation, Logo & Contrast Hardening ───────────────────── */
+
+:root.light header,
+:root.light nav {
+  mix-blend-mode: normal !important;
+}
+
+:root.light header a,
+:root.light nav a {
+  color: #111111 !important;
+  font-weight: 600;
+}
+
+:root.light header a:hover,
+:root.light nav a:hover {
+  color: var(--color-gold-leaf) !important;
+}
+
+:root.light .mix-blend-difference,
+:root.light .mix-blend-overlay {
+  mix-blend-mode: normal !important;
+}
+
+:root.light .logo-svora,
+:root.light nav a span.logo-svora,
+:root.light nav span.font-serif,
+:root.light footer span.font-serif,
+:root.light .text-logo {
+  color: #000000 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+}
+
+:root.light nav a:hover .logo-svora,
+:root.light nav a:hover span.font-serif {
+  color: var(--color-gold-leaf) !important;
+}
+
+:root.light nav a {
+  color: #111111 !important;
+  font-weight: 600;
+}
+
+:root.light nav a:hover {
+  color: var(--color-gold-leaf) !important;
+}
+
+/* ── Light Mode Image & Card Darkening ───────────────────────────────────── */
+
+:root.light .somatic-image-card {
+  background-color: #0C0C0C !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+:root.light .somatic-image-layer {
+  opacity: 0.9 !important;
+  filter: grayscale(100%) contrast(1.25) brightness(0.82) !important;
+}
+
+:root.light .somatic-gradient-overlay {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.2) 50%, transparent 100%) !important;
+  opacity: 0.8 !important;
+}
+
+:root.light .somatic-image-card .text-\[var\(--fg-muted\)\] {
+  color: rgba(255, 255, 255, 0.85) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+:root.light .somatic-image-card .text-\[var\(--fg-page\)\] {
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+:root.light .somatic-image-card svg text {
+  fill: #FFFFFF !important;
+}
+
+:root.light img,
+:root.light .preview-image {
+  opacity: 0.95 !important;
+  filter: contrast(1.15) brightness(0.88) !important;
+}
 
 /* ── Blueprint Grid ──────────────────────────────────────────────────────── */
 
@@ -131,7 +245,7 @@ body {
 /* ── Bento Luxe Cards ────────────────────────────────────────────────────── */
 
 .bento-luxe {
-  @apply relative overflow-hidden rounded-[40px] p-10 transition-all duration-700;
+  @apply relative overflow-hidden rounded-[2rem] md:rounded-[40px] p-6 sm:p-8 md:p-10 transition-all duration-700;
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   backdrop-filter: blur(20px);
@@ -149,32 +263,94 @@ body {
 /* ── HUD Panel ───────────────────────────────────────────────────────────── */
 
 .hud-panel {
-  @apply border-l backdrop-blur-sm;
-  border-color: var(--border-card);
-  background: linear-gradient(to left, var(--bg-input), transparent);
+  @apply border-l backdrop-blur-md;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(to left, rgba(212, 175, 55, 0.05), rgba(255, 255, 255, 0.03), transparent);
+  box-shadow: -20px 0 50px -10px rgba(0, 0, 0, 0.8);
 }
 
-/* ── Kinetic Button ──────────────────────────────────────────────────────── */
+:root.light .hud-panel {
+  border-color: rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to left, rgba(212, 175, 55, 0.06), rgba(255, 255, 255, 0.4), transparent);
+  box-shadow: -10px 0 30px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Kinetic & High-Contrast Buttons ────────────────────────────────────── */
 
 .btn-kinetic {
-  @apply relative px-10 py-5 overflow-hidden rounded-full font-bold uppercase tracking-[0.3em] text-[10px] transition-all duration-700;
+  @apply relative px-10 py-5 overflow-hidden rounded-full font-bold uppercase tracking-[0.3em] text-[10px] transition-all duration-500 inline-flex items-center justify-center;
   border: 1px solid var(--border-card);
   color: var(--fg-page);
+  text-decoration: none;
+  cursor: none;
 }
 
 .btn-kinetic:hover {
-  @apply shadow-[0_0_30px_rgba(212,175,55,0.3)];
   border-color: var(--color-gold-leaf);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.35);
 }
 
 .btn-kinetic::before {
   content: '';
-  @apply absolute inset-0 opacity-0 transition-opacity duration-500;
+  @apply absolute inset-0 opacity-0 transition-opacity duration-300 pointer-events-none;
   background: var(--fg-page);
 }
 
 .btn-kinetic:hover::before {
   opacity: 0.05;
+}
+
+/* ── STRICT CONTRAST ENFORCEMENT FOR WHITE / LIGHT PILL BUTTONS ─────────── */
+/* Ensures button text is 100% visible, bold, and high-contrast in every theme */
+
+.btn-kinetic.bg-white,
+.btn-kinetic.bg-\[var\(--fg-page\)\],
+.btn-magnetic.bg-white,
+.btn-magnetic.bg-\[var\(--fg-page\)\],
+button.bg-white,
+button.bg-\[var\(--fg-page\)\],
+a.btn-kinetic.bg-white,
+a.btn-kinetic.bg-\[var\(--fg-page\)\] {
+  color: #000000 !important;
+  background-color: #FFFFFF !important;
+}
+
+.btn-kinetic.bg-white *,
+.btn-kinetic.bg-\[var\(--fg-page\)\] *,
+.btn-magnetic.bg-white *,
+.btn-magnetic.bg-\[var\(--fg-page\)\] *,
+button.bg-white *,
+button.bg-\[var\(--fg-page\)\] *,
+a.btn-kinetic.bg-white *,
+a.btn-kinetic.bg-\[var\(--fg-page\)\] * {
+  color: #000000 !important;
+}
+
+.btn-kinetic.bg-white:hover,
+.btn-kinetic.bg-\[var\(--fg-page\)\]:hover,
+button.bg-white:hover,
+button.bg-\[var\(--fg-page\)\]:hover,
+a.btn-kinetic.bg-white:hover,
+a.btn-kinetic.bg-\[var\(--fg-page\)\]:hover {
+  color: #000000 !important;
+  background-color: var(--color-gold-leaf) !important;
+  border-color: var(--color-gold-leaf) !important;
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.45) !important;
+}
+
+.btn-kinetic.bg-white:hover *,
+.btn-kinetic.bg-\[var\(--fg-page\)\]:hover *,
+button.bg-white:hover *,
+button.bg-\[var\(--fg-page\)\]:hover * {
+  color: #000000 !important;
+}
+
+/* ── Hardware Acceleration Helpers (GSAP Performance) ──────────────────── */
+.gpu-accelerated,
+.will-change-transform {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* ── Text Reveal ─────────────────────────────────────────────────────────── */

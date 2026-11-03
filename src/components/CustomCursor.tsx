@@ -1,97 +1,155 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, useSpring, useMotionValue } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 export const CustomCursor = () => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isClicking, setIsClicking] = useState(false);
-  const [cursorText, setCursorText] = useState("");
-  
-  const mouseX = useMotionValue(-100);
-  const mouseY = useMotionValue(-100);
-
-  // Cinematic Spring Physics
-  const springConfig = { damping: 20, stiffness: 300, mass: 0.5 };
-  const springX = useSpring(mouseX, springConfig);
-  const springY = useSpring(mouseY, springConfig);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    const moveCursor = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+    setIsClient(true);
+
+    const checkIsDesktop = () => {
+      if (typeof window === "undefined") return false;
+      const isFine = window.matchMedia("(pointer: fine)").matches;
+      const isWide = window.innerWidth >= 768;
+      return isFine && isWide;
     };
 
-    const handleHover = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      
-      const interactive = target.closest("button, a, input, [data-cursor='hover'], .group");
-      const textTrigger = target.getAttribute("data-cursor-text");
+    if (!checkIsDesktop()) return;
 
-      setIsHovered(!!interactive);
-      setCursorText(textTrigger || "");
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    const textSpan = textRef.current;
+    if (!dot || !ring) return;
+
+    // Center initial placement off-screen
+    gsap.set([dot, ring], { xPercent: -50, yPercent: -50, opacity: 0 });
+
+    // GSAP quickTo provides direct GPU transforms bypassing React state renders
+    const dotX = gsap.quickTo(dot, "x", { duration: 0.08, ease: "power3.out" });
+    const dotY = gsap.quickTo(dot, "y", { duration: 0.08, ease: "power3.out" });
+
+    const ringX = gsap.quickTo(ring, "x", { duration: 0.22, ease: "power2.out" });
+    const ringY = gsap.quickTo(ring, "y", { duration: 0.22, ease: "power2.out" });
+
+    let hasMoved = false;
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!hasMoved) {
+        hasMoved = true;
+        gsap.to([dot, ring], { opacity: 1, duration: 0.2 });
+      }
+      dotX(e.clientX);
+      dotY(e.clientY);
+      ringX(e.clientX);
+      ringY(e.clientY);
     };
 
-    const handleMouseDown = () => setIsClicking(true);
-    const handleMouseUp = () => setIsClicking(false);
+    const onMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
 
-    window.addEventListener("mousemove", moveCursor);
-    window.addEventListener("mouseover", handleHover);
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
+      const interactive = target.closest("button, a, input, select, textarea, [data-cursor='hover'], .btn-kinetic, .btn-magnetic");
+      const cursorText = target.getAttribute("data-cursor-text");
+
+      if (cursorText && textSpan) {
+        textSpan.textContent = cursorText;
+        gsap.to(dot, { scale: 0, duration: 0.15 });
+        gsap.to(ring, {
+          width: 80,
+          height: 80,
+          backgroundColor: "#FFFFFF",
+          borderColor: "#FFFFFF",
+          duration: 0.25,
+          ease: "power2.out"
+        });
+        gsap.to(textSpan, { opacity: 1, scale: 1, duration: 0.2 });
+      } else if (interactive) {
+        gsap.to(dot, { scale: 0, duration: 0.15 });
+        gsap.to(ring, {
+          width: 54,
+          height: 54,
+          backgroundColor: "rgba(212, 175, 55, 0.18)",
+          borderColor: "rgba(212, 175, 55, 0.85)",
+          duration: 0.25,
+          ease: "power2.out"
+        });
+        if (textSpan) gsap.to(textSpan, { opacity: 0, scale: 0.5, duration: 0.15 });
+      } else {
+        gsap.to(dot, { scale: 1, duration: 0.2 });
+        gsap.to(ring, {
+          width: 24,
+          height: 24,
+          backgroundColor: "transparent",
+          borderColor: "rgba(255, 255, 255, 0.35)",
+          duration: 0.25,
+          ease: "power2.out"
+        });
+        if (textSpan) gsap.to(textSpan, { opacity: 0, scale: 0.5, duration: 0.15 });
+      }
+    };
+
+    const onMouseDown = () => {
+      gsap.to(ring, { scale: 0.85, duration: 0.12, ease: "power2.out" });
+    };
+
+    const onMouseUp = () => {
+      gsap.to(ring, { scale: 1, duration: 0.18, ease: "power2.out" });
+    };
+
+    const onMouseLeave = () => {
+      gsap.to([dot, ring], { opacity: 0, duration: 0.25 });
+      hasMoved = false;
+    };
+
+    const onResize = () => {
+      const desktop = checkIsDesktop();
+      if (!desktop) {
+        gsap.set([dot, ring], { opacity: 0 });
+      }
+    };
+
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    window.addEventListener("mouseover", onMouseOver, { passive: true });
+    window.addEventListener("mousedown", onMouseDown, { passive: true });
+    window.addEventListener("mouseup", onMouseUp, { passive: true });
+    document.addEventListener("mouseleave", onMouseLeave);
+    window.addEventListener("resize", onResize, { passive: true });
 
     return () => {
-      window.removeEventListener("mousemove", moveCursor);
-      window.removeEventListener("mouseover", handleHover);
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseover", onMouseOver);
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("resize", onResize);
     };
-  }, [mouseX, mouseY]);
+  }, []);
 
   return (
     <>
-      {/* Primary Dot - Inverted */}
-      <motion.div
-        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
-        style={{
-          x: springX,
-          y: springY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-        animate={{
-          scale: isHovered ? 0 : 1, // Disappears on hover to let the ring take over
-        }}
+      {/* Primary Dot - Hardware Accelerated with GSAP, strictly hidden on mobile via CSS */}
+      <div
+        ref={dotRef}
+        data-custom-cursor
+        className="custom-cursor-element fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference will-change-transform hidden md:block opacity-0"
       />
 
-      {/* Outer Ring / Label Container */}
-      <motion.div
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998] flex items-center justify-center border border-white/20 mix-blend-difference bg-white/5 backdrop-blur-sm"
-        style={{
-          x: springX,
-          y: springY,
-          translateX: "-50%",
-          translateY: "-50%",
-        }}
-        animate={{
-          width: cursorText ? 80 : (isHovered ? 60 : 20),
-          height: cursorText ? 80 : (isHovered ? 60 : 20),
-          opacity: 1,
-          scale: isClicking ? 0.9 : 1,
-          backgroundColor: cursorText ? "rgba(255, 255, 255, 1)" : (isHovered ? "rgba(255, 255, 255, 0.1)" : "transparent"),
-          borderColor: isHovered ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.2)",
-        }}
-        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      {/* Outer Ring / Label Container - Hardware Accelerated with GSAP, strictly hidden on mobile via CSS */}
+      <div
+        ref={ringRef}
+        data-custom-cursor
+        className="custom-cursor-element fixed top-0 left-0 w-6 h-6 rounded-full pointer-events-none z-[9998] items-center justify-center border border-white/30 mix-blend-difference bg-white/5 backdrop-blur-[2px] will-change-transform hidden md:flex opacity-0"
       >
-        {/* Text Label inside Cursor */}
-        <motion.span 
-          className="text-[10px] font-bold uppercase tracking-widest text-black"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: cursorText ? 1 : 0, scale: cursorText ? 1 : 0.5 }}
-        >
-          {cursorText}
-        </motion.span>
-      </motion.div>
+        <span
+          ref={textRef}
+          className="text-[10px] font-bold uppercase tracking-widest text-black opacity-0 scale-50 select-none pointer-events-none"
+        />
+      </div>
     </>
   );
 };

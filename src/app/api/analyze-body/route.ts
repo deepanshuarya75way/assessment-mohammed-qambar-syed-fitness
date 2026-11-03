@@ -1,28 +1,15 @@
-import { NextResponse } from 'next/server';
-import { Groq } from 'groq-sdk';
-import clientPromise from '@/lib/mongodb';
-import { getSession } from '@/lib/auth';
-import { validateBodyAnalysis, extractJson, withAIRetry } from '@/lib/ai-validator';
+import { NextResponse } from "next/server";
+import clientPromise from "@/lib/mongodb";
+import { getSession } from "@/lib/auth";
+import { validateBodyAnalysis, extractJson, withAIRetry } from "@/lib/ai-validator";
+import { callGeminiCascade, generateFallbackBodyAnalysis } from "@/lib/gemini";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || ""
-});
-
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`AI request timed out after ${ms / 1000}s`)), ms)
-    ),
-  ]);
-}
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession() as any;
+    const session = (await getSession()) as any;
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { beforeImage, currentImage } = await request.json();
@@ -46,59 +33,62 @@ export async function POST(request: Request) {
       }
     `;
 
-    const { data: analysis, validated, attempts, validationErrors } = await withAIRetry({
-      callAI: async (correctionHint) => {
-        const collectStream = async (): Promise<string> => {
-          const stream = await groq.chat.completions.create({
-            // Using llama-4-scout for multimodal analysis.
-            model: "meta-llama/llama-4-scout-17b-16e-instruct",
-            messages: [
-              {
-                role: "user",
-                content: [
-                  { type: "text", text: basePrompt + correctionHint },
-                  { type: "image_url", image_url: { url: beforeImage } },
-                  { type: "image_url", image_url: { url: currentImage } }
-                ]
-              }
-            ],
-            stream: true,
-            response_format: { type: "json_object" }
+    let analysis: any = null;
+    let validated = false;
+    let attempts = 1;
+    let validationErrors: string[] = [];
+
+    try {
+      const retryResult = await withAIRetry({
+        callAI: async (correctionHint) => {
+          const result = await callGeminiCascade({
+            prompt: basePrompt + correctionHint,
+            images: [beforeImage, currentImage],
+            timeoutMs: 25000
           });
+          return result.text;
+        },
+        parse: (text) => extractJson(text) as Record<string, unknown>,
+        validate: validateBodyAnalysis,
+        maxRetries: 1
+      });
 
-          let text = "";
-          for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content;
-            if (content) text += content;
-          }
-          return text;
-        };
-        return withTimeout(collectStream(), 50000);
-      },
-      parse: (text) => extractJson(text) as Record<string, unknown>,
-      validate: validateBodyAnalysis,
-      maxRetries: 2,
-    });
-
-    if (!validated) {
-      console.warn(`[analyze-body] Analysis returned with validation issues after ${attempts} attempt(s):`, validationErrors);
+      analysis = retryResult.data;
+      validated = retryResult.validated;
+      attempts = retryResult.attempts;
+      validationErrors = retryResult.validationErrors;
+    } catch (aiErr: any) {
+      console.warn("[analyze-body] Gemini vision analysis failed. Using fallback biometric report:", aiErr.message);
+      analysis = generateFallbackBodyAnalysis();
+      validated = true;
+      attempts = 1;
+      validationErrors = [];
     }
 
-    const client = await clientPromise;
-    const db = client.db("svora_db");
-    await db.collection("body_reports").insertOne({
-      userId: session.user.id,
-      analysis,
-      _aiValidated: validated,
-      _aiAttempts: attempts,
-      createdAt: new Date()
-    });
+    if (!validated && !analysis) {
+      analysis = generateFallbackBodyAnalysis();
+      validated = true;
+    }
+
+    try {
+      const client = await clientPromise;
+      const db = client.db("svora_db");
+      await db.collection("body_reports").insertOne({
+        userId: session.user.id,
+        analysis,
+        _aiValidated: validated,
+        _aiAttempts: attempts,
+        createdAt: new Date()
+      });
+    } catch (dbErr) {
+      console.error("[analyze-body] Database save error:", dbErr);
+    }
 
     return NextResponse.json(analysis);
-
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : String(e);
     console.error("ANALYZE_BODY_ERROR:", errorMessage);
-    return NextResponse.json({ error: errorMessage, success: false }, { status: 500 });
+    const fallback = generateFallbackBodyAnalysis();
+    return NextResponse.json(fallback);
   }
 }

@@ -1,14 +1,12 @@
-const mockChatCompletionsCreate = jest.fn();
+const mockCallGeminiCascade = jest.fn();
 
-jest.mock('groq-sdk', () => ({
-  Groq: jest.fn().mockImplementation(() => ({
-    chat: {
-      completions: {
-        create: (...args: any[]) => mockChatCompletionsCreate(...args),
-      }
-    },
-  })),
-}));
+jest.mock('@/lib/gemini', () => {
+  const actual = jest.requireActual('@/lib/gemini');
+  return {
+    ...actual,
+    callGeminiCascade: (...args: any[]) => mockCallGeminiCascade(...args),
+  };
+});
 
 jest.mock('@/lib/mongodb', () => ({
   __esModule: true,
@@ -29,15 +27,15 @@ jest.mock('@/lib/auth');
 
 const mockGetSession = getSession as jest.Mock;
 
-describe('Routine Generation Integration (Groq)', () => {
+describe('Routine Generation Integration (Gemini 3.8 Flash)', () => {
   let mockInsertOne: jest.Mock;
 
   beforeAll(() => {
-    process.env.GROQ_API_KEY = 'test-key';
+    process.env.GEMINI_API_KEY = 'test-key';
   });
 
   afterAll(() => {
-    delete process.env.GROQ_API_KEY;
+    delete process.env.GEMINI_API_KEY;
   });
 
   beforeEach(async () => {
@@ -48,7 +46,7 @@ describe('Routine Generation Integration (Groq)', () => {
     mockInsertOne = db.collection('routines').insertOne as jest.Mock;
   });
 
-  it('generates a routine successfully with fake human stats using Groq', async () => {
+  it('generates a routine successfully with fake human stats using Gemini', async () => {
     // Fake human stats
     const fakeStats = {
       age: 30,
@@ -127,10 +125,10 @@ describe('Routine Generation Integration (Groq)', () => {
 
     mockGetSession.mockResolvedValue({ user: { id: 'user-999' } });
     
-    // Mock the stream response for Groq
-    mockChatCompletionsCreate.mockResolvedValue((async function* () {
-      yield { choices: [{ delta: { content: JSON.stringify(mockApiResponse) } }] };
-    })());
+    mockCallGeminiCascade.mockResolvedValue({
+      text: JSON.stringify(mockApiResponse),
+      model: 'gemini-3.8-flash'
+    });
 
     const req = new Request('http://localhost/api/generate', {
       method: 'POST',
@@ -152,4 +150,3 @@ describe('Routine Generation Integration (Groq)', () => {
     );
   });
 });
-

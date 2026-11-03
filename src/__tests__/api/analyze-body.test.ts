@@ -1,6 +1,6 @@
 const mockGetSession = jest.fn();
 const mockInsertOne = jest.fn();
-const mockChatSend = jest.fn();
+const mockCallGemini = jest.fn();
 
 jest.mock('@/lib/auth', () => ({
   getSession: (...args: any[]) => mockGetSession(...args),
@@ -17,19 +17,15 @@ jest.mock('@/lib/mongodb', () => ({
   }),
 }));
 
-jest.mock('@openrouter/sdk', () => ({
-  OpenRouter: jest.fn().mockImplementation(() => ({
-    chat: { send: (...args: any[]) => mockChatSend(...args) },
-  })),
-}));
+jest.mock('@/lib/gemini', () => {
+  const actual = jest.requireActual('@/lib/gemini');
+  return {
+    ...actual,
+    callGeminiCascade: (...args: any[]) => mockCallGemini(...args),
+  };
+});
 
 import { POST } from '@/app/api/analyze-body/route';
-
-function makeStream(content: string) {
-  return (async function* () {
-    yield { choices: [{ delta: { content } }] };
-  })();
-}
 
 const validBody = {
   beforeImage: 'data:image/jpeg;base64,beforedata',
@@ -59,10 +55,8 @@ describe('POST /api/analyze-body', () => {
     mockGetSession.mockResolvedValue(null);
 
     const res = await POST(makeRequest(validBody));
-    const data = await res.json();
-
     expect(res.status).toBe(401);
-    expect(mockChatSend).not.toHaveBeenCalled();
+    expect(mockCallGemini).not.toHaveBeenCalled();
   });
 
   it('returns 400 when images missing', async () => {
@@ -84,7 +78,7 @@ describe('POST /api/analyze-body', () => {
 
   it('returns analysis on valid request', async () => {
     mockGetSession.mockResolvedValue({ user: { id: '123' } });
-    mockChatSend.mockImplementation(() => Promise.resolve(makeStream(JSON.stringify(mockAnalysis))));
+    mockCallGemini.mockResolvedValue({ text: JSON.stringify(mockAnalysis), model: 'gemini-3.8-flash' });
     mockInsertOne.mockResolvedValue({ insertedId: 'report-id' });
 
     const res = await POST(makeRequest(validBody));
@@ -97,7 +91,7 @@ describe('POST /api/analyze-body', () => {
 
   it('saves analysis to DB', async () => {
     mockGetSession.mockResolvedValue({ user: { id: '123' } });
-    mockChatSend.mockImplementation(() => Promise.resolve(makeStream(JSON.stringify(mockAnalysis))));
+    mockCallGemini.mockResolvedValue({ text: JSON.stringify(mockAnalysis), model: 'gemini-3.8-flash' });
     mockInsertOne.mockResolvedValue({ insertedId: 'id' });
 
     await POST(makeRequest(validBody));
@@ -108,5 +102,18 @@ describe('POST /api/analyze-body', () => {
         createdAt: expect.any(Date),
       })
     );
+  });
+
+  it('falls back to default analysis when AI fails', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: '123' } });
+    mockCallGemini.mockRejectedValue(new Error('Vision model unavailable'));
+    mockInsertOne.mockResolvedValue({ insertedId: 'id' });
+
+    const res = await POST(makeRequest(validBody));
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.muscleMassChange).toBeDefined();
+    expect(data.postureAnalysis).toBeDefined();
   });
 });

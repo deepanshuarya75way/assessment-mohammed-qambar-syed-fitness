@@ -109,7 +109,7 @@ export const JournalSection = () => {
                   />
                 </div>
               </div>
-              <button onClick={logCalories} className="w-full py-4 rounded-full bg-[var(--fg-page)] text-[var(--bg-page)] font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-gold-leaf transition-all">
+              <button onClick={logCalories} className="w-full py-4 rounded-full bg-white text-black font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-gold-leaf hover:text-black transition-all shadow-md">
                 Synchronize Log
               </button>
             </div>
