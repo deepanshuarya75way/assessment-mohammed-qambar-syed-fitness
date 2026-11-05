@@ -21,6 +21,7 @@ RULES:
 7. Do not claim that suggested modifications have been saved.
 8. Use conversation history to maintain context.
 9. Return valid JSON only, with no Markdown code fences.
+
 `;
 
 export async function POST(request: NextRequest) {
