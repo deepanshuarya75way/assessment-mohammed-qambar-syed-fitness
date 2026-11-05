@@ -4,8 +4,6 @@ import { getSession } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
 import { callGeminiCascade } from "@/lib/gemini";
 
-export const dynamic = "force-dynamic";
-export const maxDuration = 60;
 
 const SYSTEM_PROMPT = `
 You are an expert personal trainer for SVORA Wellness.
