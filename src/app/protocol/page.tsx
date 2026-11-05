@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, ChevronDown, Play, Zap, X, ShieldCheck, Activity, Award, Plus, Check, LogOut, User as UserIcon, LayoutDashboard, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { JournalSection } from "@/components/JournalSection";
+import WorkoutChat from "@/components/workoutChat";
 
 // --- ANIMATION CONFIG ---
 const fadeUp = {
@@ -879,6 +880,10 @@ export default function ProtocolPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className = 'mt-10'>
+        <WorkoutChat />
+      </div>
     </div>
   );
 }
